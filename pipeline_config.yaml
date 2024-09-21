@@ -1,0 +1,25 @@
+# Segmentation sapience
+segmentaion:
+  service_url: http://127.0.0.1:7860
+  force_preservation_classes:
+    - Hair
+  soft_preservation_classes:
+    - Apparel
+    - Left_Hand
+    - Left_Lower_Arm
+    - Left_Upper_Arm
+    - Right_Hand
+    - Right_Lower_Arm
+    - Right_Upper_Arm
+    - Torso
+  clothing_classes:
+    - Upper_Clothing
+    - Lower_Clothing
+
+# Device settings
+device: cuda
+
+# Paths
+base_path: yisol/IDM-VTON
+example_path: ./example
+

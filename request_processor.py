@@ -2,59 +2,70 @@ from PIL import Image
 
 import torch
 import numpy as np
-import json
 
 from utils_mask import get_mask_location
 from torchvision import transforms
 import apply_net
-from gradio_client import Client, handle_file
 
 from detectron2.data.detection_utils import convert_PIL_to_numpy,_apply_exif_orientation
 from torchvision.transforms.functional import to_pil_image
+from segmentation_processor import request_segmentation_results, extract_submask
 
-
-def request_segmentation_results(url="http://127.0.0.1:7860/"):
-    client = Client(url)
-    _, npy_path, json_path = client.predict(
-            image=handle_file('example/human/Screenshot 2024-09-20 at 20.21.32.png'),
-            model_name="1b",
-            api_name="/process_image"
-    )
-    class_segmentation = np.load(npy_path)
-
-    with open(json_path, 'r') as f:
-        class_mapping = json.load(f)
-
-    return class_segmentation, class_mapping
-
-def create_submask(segmentation_map, submask_classes, class_mapping):
-    """
-    Creates a submask of the union of the classes to preserve.
-
-    Args:
-    segmentation_map (numpy.ndarray): A 2D array of argmax indices representing the segmentation map.
-    submask_classes (list): List of class.
-    class_mapping (dict): A dictionary mapping class names to their corresponding index values.
-
-    Returns:
-    numpy.ndarray: A binary submask where the classes to preserve are set to 1 and the rest are 0.
-    """
-    # Convert the class names to indices using the class mapping
-    class_indices_to_preserve = [class_mapping[cls] for cls in submask_classes]
-
-    # Create a binary mask where classes to preserve are 1, and others are 0
-    submask = np.isin(segmentation_map, class_indices_to_preserve).astype(np.uint8)
-
-    return submask
 
 
 class TryOnProcessor:
-    def __init__(self, device, pipe, openpose_model, parsing_model, tensor_transform):
-        self.device = device
-        self.pipe = pipe
-        self.openpose_model = openpose_model
-        self.parsing_model = parsing_model
-        self.tensor_transform = tensor_transform
+    def __init__(self, pipeline_config, pipeline_loader):
+        self.pipeline_config = pipeline_config
+        self.segmentaion_config = self.pipeline_config['segmentaion']
+        self.device = pipeline_config['device']
+        self.pipe = pipeline_loader.get_pipeline()
+        self.openpose_model = pipeline_loader.get_openpose_model()
+        self.parsing_model = pipeline_loader.get_parsing_model()
+        self.tensor_transform = pipeline_loader.get_tensor_transform()
+
+    def postprocess_submasks(self, init_image, result_image):
+        segmentaion_config = self.segmentaion_config
+
+        segmentation_map, classes_mapping = request_segmentation_results(
+            url=segmentaion_config['service_url'], 
+            image=init_image
+        )
+        
+        soft_preservation_submask = extract_submask(
+            segmentation_map=segmentation_map,
+            submask_classes=segmentaion_config['soft_preservation_classes'],
+            classes_mapping=classes_mapping
+        )
+
+        force_preservetion_submask = extract_submask(
+            segmentation_map=segmentation_map,
+            submask_classes=segmentaion_config['force_preservation_classes'],
+            classes_mapping=classes_mapping
+        )
+
+        segmentation_map, classes_mapping = request_segmentation_results(
+            url=segmentaion_config['service_url'], 
+            image=result_image
+        )
+
+        clothing_submask = extract_submask(
+            segmentation_map=segmentation_map,
+            submask_classes=segmentaion_config['clothing_classes'],
+            classes_mapping=classes_mapping
+        )
+
+        force_mask = Image.fromarray(force_preservetion_submask).convert("L")
+        composed_image = Image.composite(init_image, result_image, force_mask)
+
+        soft_mask = np.logical_and(
+            soft_preservation_submask, 
+            np.logical_not(clothing_submask)
+        )
+        soft_mask_pil = Image.fromarray(soft_mask).convert("L")
+
+        composed_image = Image.composite(init_image, composed_image, soft_mask_pil)
+        return composed_image
+
 
     def preprocess_images(self, human_canva, garm_img):
         garm_img = garm_img.convert("RGB").resize((768, 1024))
@@ -176,6 +187,7 @@ class TryOnProcessor:
     ):
         # Preprocess images
         garm_img, human_img, human_img_orig = self.preprocess_images(human_canva, garm_img)
+        org_size = human_img_orig.size()
 
         # Generate keypoints and parse model
         keypoints, model_parse = self.generate_keypoints_and_parse_model(human_img)
@@ -223,4 +235,11 @@ class TryOnProcessor:
                     garm_img,
                 )
 
-        return images[0], mask_gray
+        result_image = images[0]
+
+
+        compose_result = self.postprocess_submasks(human_img, result_image)
+
+        compose_result = compose_result.resize(org_size)
+
+        return compose_result, mask_gray
