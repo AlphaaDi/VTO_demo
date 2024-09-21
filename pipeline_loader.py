@@ -1,7 +1,20 @@
-import os
 import torch
-from transformers import AutoTokenizer, CLIPTextModel, CLIPVisionModelWithProjection, CLIPImageProcessor
-from diffusers import UNet2DConditionModel, DDPMScheduler, AutoencoderKL
+from transformers import AutoTokenizer
+import numpy as np
+
+from src.tryon_pipeline import StableDiffusionXLInpaintPipeline as TryonPipeline
+from src.unet_hacked_garmnet import UNet2DConditionModel as UNet2DConditionModel_ref
+from src.unet_hacked_tryon import UNet2DConditionModel
+from transformers import (
+    CLIPImageProcessor,
+    CLIPVisionModelWithProjection,
+    CLIPTextModel,
+    CLIPTextModelWithProjection,
+)
+from diffusers import DDPMScheduler,AutoencoderKL
+from preprocess.humanparsing.run_parsing import Parsing
+from preprocess.openpose.run_openpose import OpenPose
+
 from torchvision import transforms
 
 class PipelineLoader:
@@ -13,6 +26,7 @@ class PipelineLoader:
             transforms.Normalize([0.5], [0.5]),
         ])
         self._load_components()
+        self._load_pipeline()
         self._move_to_device()
 
     def _load_components(self):
@@ -31,7 +45,7 @@ class PipelineLoader:
         )
         self.vae.requires_grad_(False)
 
-        self.UNet_Encoder = UNet2DConditionModel.from_pretrained(
+        self.UNet_Encoder = UNet2DConditionModel_ref.from_pretrained(
             self.base_path,
             subfolder="unet_encoder",
             torch_dtype=torch.float16,
@@ -87,7 +101,7 @@ class PipelineLoader:
         self.pipe.to(self.device)
         self.pipe.unet_encoder.to(self.device)
 
-    def load_pipeline(self):
+    def _load_pipeline(self):
         # Load pipeline
         self.pipe = TryonPipeline.from_pretrained(
             self.base_path,
@@ -106,4 +120,22 @@ class PipelineLoader:
         # Attach the unet encoder to the pipeline
         self.pipe.unet_encoder = self.UNet_Encoder
 
+    def get_pipeline(self):
+        if not hasattr(self, 'pipe') or not self.pipe:
+            raise AttributeError('Loader could not load pipeline, try again')
         return self.pipe
+
+    def get_openpose_model(self):
+        if not hasattr(self, 'openpose_model') or not self.pipe:
+            raise AttributeError('Loader could not load openpose model, try again')
+        return self.openpose_model
+
+    def get_parsing_model(self):
+        if not hasattr(self, 'parsing_model') or not self.pipe:
+            raise AttributeError('Loader could not load parsing model, try again')
+        return self.parsing_model
+    
+    def get_tensor_transform(self):
+        if not hasattr(self, 'tensor_transform') or not self.pipe:
+            raise AttributeError('Loader could not load tensor transform, try again')
+        return self.tensor_transform
