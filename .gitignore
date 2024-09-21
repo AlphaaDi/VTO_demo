@@ -103,7 +103,6 @@ venv.bak/
 
 # Images and videos
 *.png
-*.jpg
 *.jpeg
 *.gif
 *.bmp
