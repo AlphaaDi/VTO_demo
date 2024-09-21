@@ -1,13 +1,52 @@
 from PIL import Image
 
 import torch
+import numpy as np
+import json
 
 from utils_mask import get_mask_location
 from torchvision import transforms
 import apply_net
+from gradio_client import Client, handle_file
 
 from detectron2.data.detection_utils import convert_PIL_to_numpy,_apply_exif_orientation
 from torchvision.transforms.functional import to_pil_image
+
+
+def request_segmentation_results(url="http://127.0.0.1:7860/"):
+    client = Client(url)
+    _, npy_path, json_path = client.predict(
+            image=handle_file('example/human/Screenshot 2024-09-20 at 20.21.32.png'),
+            model_name="1b",
+            api_name="/process_image"
+    )
+    class_segmentation = np.load(npy_path)
+
+    with open(json_path, 'r') as f:
+        class_mapping = json.load(f)
+
+    return class_segmentation, class_mapping
+
+def create_submask(segmentation_map, submask_classes, class_mapping):
+    """
+    Creates a submask of the union of the classes to preserve.
+
+    Args:
+    segmentation_map (numpy.ndarray): A 2D array of argmax indices representing the segmentation map.
+    submask_classes (list): List of class.
+    class_mapping (dict): A dictionary mapping class names to their corresponding index values.
+
+    Returns:
+    numpy.ndarray: A binary submask where the classes to preserve are set to 1 and the rest are 0.
+    """
+    # Convert the class names to indices using the class mapping
+    class_indices_to_preserve = [class_mapping[cls] for cls in submask_classes]
+
+    # Create a binary mask where classes to preserve are 1, and others are 0
+    submask = np.isin(segmentation_map, class_indices_to_preserve).astype(np.uint8)
+
+    return submask
+
 
 class TryOnProcessor:
     def __init__(self, device, pipe, openpose_model, parsing_model, tensor_transform):
