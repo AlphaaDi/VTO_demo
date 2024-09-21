@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import os
 
 
 def pil_to_binary_mask(pil_image, threshold=0):
@@ -14,3 +15,7 @@ def pil_to_binary_mask(pil_image, threshold=0):
     mask = (mask*255).astype(np.uint8)
     output_mask = Image.fromarray(mask)
     return output_mask
+
+def get_files_from_dir(directory):
+    file_list = os.listdir(directory)
+    return [os.path.join(directory, file) for file in file_list]
