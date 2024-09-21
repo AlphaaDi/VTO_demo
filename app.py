@@ -13,10 +13,6 @@ pipeline_loader = PipelineLoader(
     base_path=pipeline_config['base_path'],
     device=pipeline_config['device']
 )
-pipe = pipeline_loader.get_pipeline()
-openpose_model = pipeline_loader.get_openpose_model()
-parsing_model = pipeline_loader.get_parsing_model()
-tensor_transform = pipeline_loader.get_tensor_transform()
 
 try_on_processor = TryOnProcessor(
     pipeline_config, pipeline_loader

@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageChops
 
 import torch
 import numpy as np
@@ -11,7 +11,13 @@ from detectron2.data.detection_utils import convert_PIL_to_numpy,_apply_exif_ori
 from torchvision.transforms.functional import to_pil_image
 from segmentation_processor import request_segmentation_results, extract_submask
 
-
+def correct_masking(preserve_mask, org_image, mask, mask_gray):
+    preserve_mask = Image.fromarray(preserve_mask).convert('L')
+    mask2_inverted = ImageChops.invert(preserve_mask)
+    corrected_mask = ImageChops.multiply(mask, mask2_inverted)
+    corrected_mask_gray = Image.composite(org_image, mask_gray, preserve_mask)
+    return corrected_mask, corrected_mask_gray
+    
 
 class TryOnProcessor:
     def __init__(self, pipeline_config, pipeline_loader):
@@ -23,36 +29,56 @@ class TryOnProcessor:
         self.parsing_model = pipeline_loader.get_parsing_model()
         self.tensor_transform = pipeline_loader.get_tensor_transform()
 
-    def postprocess_submasks(self, init_image, result_image):
-        segmentaion_config = self.segmentaion_config
+    def to(self, device):
+        self.pipe.to(device)
 
-        segmentation_map, classes_mapping = request_segmentation_results(
-            url=segmentaion_config['service_url'], 
+    def preprocess_submasks(self, init_image):
+        init_segmentation_map, init_classes_mapping = request_segmentation_results(
+            url=self.segmentaion_config['service_url'], 
             image=init_image
         )
+
+        pre_preservation_classes = extract_submask(
+            segmentation_map=init_segmentation_map,
+            submask_classes=self.segmentaion_config['pre_preservation_classes'],
+            classes_mapping=init_classes_mapping
+        )
+
+        return pre_preservation_classes, init_segmentation_map, init_classes_mapping
         
+
+    def postprocess_submasks(
+            self, 
+            init_image, 
+            init_segmentation_map,
+            init_classes_mapping, 
+            result_image):
+        segmentaion_config = self.segmentaion_config
+
         soft_preservation_submask = extract_submask(
-            segmentation_map=segmentation_map,
+            segmentation_map=init_segmentation_map,
             submask_classes=segmentaion_config['soft_preservation_classes'],
-            classes_mapping=classes_mapping
+            classes_mapping=init_classes_mapping
         )
 
         force_preservetion_submask = extract_submask(
-            segmentation_map=segmentation_map,
+            segmentation_map=init_segmentation_map,
             submask_classes=segmentaion_config['force_preservation_classes'],
-            classes_mapping=classes_mapping
+            classes_mapping=init_classes_mapping
         )
 
-        segmentation_map, classes_mapping = request_segmentation_results(
+        result_segmentation_map, result_classes_mapping = request_segmentation_results(
             url=segmentaion_config['service_url'], 
             image=result_image
         )
 
         clothing_submask = extract_submask(
-            segmentation_map=segmentation_map,
+            segmentation_map=result_segmentation_map,
             submask_classes=segmentaion_config['clothing_classes'],
-            classes_mapping=classes_mapping
+            classes_mapping=result_classes_mapping
         )
+
+        Image.fromarray(clothing_submask).convert("L").save('clothing_submask.png')
 
         force_mask = Image.fromarray(force_preservetion_submask).convert("L")
         composed_image = Image.composite(init_image, result_image, force_mask)
@@ -187,13 +213,29 @@ class TryOnProcessor:
     ):
         # Preprocess images
         garm_img, human_img, human_img_orig = self.preprocess_images(human_canva, garm_img)
-        org_size = human_img_orig.size()
+        org_size = human_img_orig.size
+
+        self.to('cpu')
+        torch.cuda.empty_cache()
+        (
+            pre_preservation_classes,
+            init_segmentation_map,
+            init_classes_mapping
+        ) = self.preprocess_submasks(init_image=human_img)
+        self.to('cuda')
 
         # Generate keypoints and parse model
         keypoints, model_parse = self.generate_keypoints_and_parse_model(human_img)
 
         # Generate mask and mask_gray
         mask, mask_gray = self.generate_mask_and_mask_gray(model_parse, keypoints, human_img)
+
+        mask, mask_gray = correct_masking(
+            preserve_mask=pre_preservation_classes, 
+            org_image=human_img,
+            mask=mask,
+            mask_gray=mask_gray
+        )
 
         # Prepare human image for pose estimation
         human_img_arg = self.prepare_human_image_for_pose_estimation(human_img)
@@ -237,9 +279,15 @@ class TryOnProcessor:
 
         result_image = images[0]
 
-
-        compose_result = self.postprocess_submasks(human_img, result_image)
-
+        self.to('cpu')
+        torch.cuda.empty_cache()
+        compose_result = self.postprocess_submasks(
+            init_image=human_img,
+            init_segmentation_map=init_segmentation_map,
+            init_classes_mapping=init_classes_mapping,
+            result_image=result_image,
+        )
         compose_result = compose_result.resize(org_size)
+        self.to('cuda')
 
         return compose_result, mask_gray

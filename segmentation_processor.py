@@ -4,15 +4,15 @@ import numpy as np
 import tempfile
 
 
-def request_segmentation_results(url, image):
+def request_segmentation_results(url, image, model_name="1b", api_name="/process_image"):
     client = Client(url)
 
     with tempfile.NamedTemporaryFile(suffix=".png") as temp_file:
         image.save(temp_file.name, format="PNG")
         _, npy_path, json_path = client.predict(
-                image=image,
-                model_name="1b",
-                api_name="/process_image"
+                image=handle_file(temp_file.name),
+                model_name=model_name,
+                api_name=api_name
         )
 
     segmentation_map = np.load(npy_path)

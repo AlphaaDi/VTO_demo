@@ -1,6 +1,9 @@
 # Segmentation sapience
 segmentaion:
   service_url: http://127.0.0.1:7860
+  pre_preservation_classes:
+    - Left_Hand
+    - Right_Hand
   force_preservation_classes:
     - Hair
   soft_preservation_classes:
