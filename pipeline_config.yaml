@@ -14,7 +14,6 @@ segmentaion:
     - Right_Hand
     - Right_Lower_Arm
     - Right_Upper_Arm
-    - Torso
   clothing_classes:
     - Upper_Clothing
     - Lower_Clothing
