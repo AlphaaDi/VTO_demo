@@ -3,7 +3,6 @@ import json
 import numpy as np
 import tempfile
 
-
 def request_segmentation_results(url, image, model_name="1b", api_name="/process_image"):
     client = Client(url)
 

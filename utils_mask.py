@@ -165,3 +165,79 @@ def get_mask_location(model_type, category, model_parse: Image.Image, keypoint: 
     mask_gray = Image.fromarray(inpaint_mask.astype(np.uint8) * 127)
 
     return mask, mask_gray
+
+
+def erode_mask(org_mask, erosion_size=3):
+    '''
+        - mask (np.ndarray): Binary mask with 0s and 255s.
+    '''
+    if isinstance(org_mask, Image.Image):
+        org_mask = org_mask.convert('L')
+
+    mask = np.array(org_mask)
+    mask = np.where(mask > 0, 255, 0).astype(np.uint8)
+    erosion_kernel = np.ones((erosion_size, erosion_size), np.uint8)
+    eroded_mask = cv2.erode(mask, erosion_kernel, iterations=1)
+    _, final_mask = cv2.threshold(eroded_mask, 127, 255, cv2.THRESH_BINARY)
+    
+    if isinstance(org_mask, Image.Image):
+        final_mask = Image.fromarray(final_mask).convert('L')
+    return final_mask
+
+
+def fill_holes(org_mask, min_size):
+    """
+    Removes small isolated clusters from a binary mask.
+    
+    :param binary_mask: Binary mask (numpy array)
+    :param min_size: Minimum size of clusters to keep
+    :return: Cleaned binary mask with small clusters removed
+    """
+
+    if isinstance(org_mask, Image.Image):
+        org_mask = org_mask.convert('L')
+
+    binary_mask = np.array(org_mask) > 0
+    binary_mask = binary_mask.astype(np.uint8)
+
+    # Find all connected components (clusters)
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(binary_mask, connectivity=8)
+    
+    # Initialize an output mask to store the result
+    cleaned_mask = np.zeros_like(binary_mask, dtype=np.uint8)
+    
+    # Iterate through all the components and filter based on size
+    for i in range(1, num_labels):  # Start from 1 to skip the background
+        component_size = stats[i, cv2.CC_STAT_AREA]
+        if component_size >= min_size:
+            # Keep the component if it's larger than the minimum size
+            cleaned_mask[labels == i] = 255
+
+    cleaned_mask = cleaned_mask.astype(bool)
+
+    if isinstance(org_mask, Image.Image):
+        cleaned_mask = Image.fromarray(cleaned_mask).convert('L')
+
+    return cleaned_mask
+
+
+def remove_small_clusters_np(org_mask, min_size):
+    cleaned_mask = fill_holes(org_mask, min_size)
+    cleaned_mask_inv = ~cleaned_mask
+    cleaned_mask_inv_v2 = fill_holes(cleaned_mask_inv, min_size)
+    cleaned_mask = ~cleaned_mask_inv_v2
+    return cleaned_mask
+
+def filter_points_by_distance(reference_point, points_list, max_distance):
+    filtered_points = []
+
+    # Unpack the reference point
+    x_ref, y_ref = reference_point
+
+    # Iterate over the points list and calculate the distance
+    for x, y in points_list:
+        distance = ((x - x_ref) ** 2 + (y - y_ref) ** 2) ** (1/2)
+        if distance <= max_distance:
+            filtered_points.append((x, y))
+    
+    return filtered_points
