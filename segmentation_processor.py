@@ -3,6 +3,8 @@ import json
 import numpy as np
 import tempfile
 
+from utils_mask import remove_small_clusters_np
+
 def request_segmentation_results(url, image, model_name="1b", api_name="/process_image"):
     client = Client(url)
 
@@ -40,3 +42,15 @@ def extract_submask(segmentation_map, submask_classes, classes_mapping):
     submask = np.isin(segmentation_map, class_indices_to_preserve).astype(np.uint8) > 0
 
     return submask
+
+def get_all_submasks(segmentation_map, classes_mapping):
+    submasks = {}
+    for name, idx in classes_mapping.items():
+        submask = extract_submask(
+            segmentation_map=segmentation_map,
+            submask_classes=[name],
+            classes_mapping=classes_mapping
+        )
+        submask = remove_small_clusters_np(submask,min_size=1000)
+        submasks[name] = submask
+    return submasks

@@ -1,7 +1,6 @@
-from segmentation_processor import extract_submask
 import cv2
 import numpy as np
-from utils_mask import remove_small_clusters_np, erode_mask, filter_points_by_distance
+from utils_mask import erode_mask, filter_points_by_distance
 
 def resize_keypoints_back(keypoints, img_resized_size, img_org_size):
     resized_width, resized_height = img_resized_size
@@ -21,19 +20,6 @@ def resize_keypoints_back(keypoints, img_resized_size, img_org_size):
             resized_keypoints.append([new_x, new_y])
 
     return resized_keypoints
-
-
-def get_all_submasks(segmentation_map, classes_mapping):
-    res_submasks = {}
-    for name, idx in classes_mapping.items():
-        submask = extract_submask(
-            segmentation_map=segmentation_map,
-            submask_classes=[name],
-            classes_mapping=classes_mapping
-        )
-        submask = remove_small_clusters_np(submask,min_size=1000)
-        res_submasks[name] = submask
-    return res_submasks
 
 def _bresenham_line(x1, y1, x2, y2, sizes):
     """
@@ -191,11 +177,9 @@ def get_additional_compose_mask(
     return normalized_mask
 
 def expand_arms_compose_masking(
-    human_img, 
-    init_segmentation_map,
-    init_classes_mapping,
-    result_segmentation_map,
-    result_classes_mapping,
+    human_img,
+    init_submasks,
+    result_submasks,
     keypoints_result,
 ):
     
@@ -215,37 +199,27 @@ def expand_arms_compose_masking(
     for name, idx in points_idxses.items():
         keypoints_coords[name] = keypoints_resized[idx]
     
-    init_submasks = get_all_submasks(
-        segmentation_map=init_segmentation_map,
-        classes_mapping=init_classes_mapping
-    )
-    
-    res_submasks = get_all_submasks(
-        segmentation_map=result_segmentation_map,
-        classes_mapping=result_classes_mapping
-    )
-    
     additional_compose_masks = [
         {
-            'mask1': res_submasks['Left_Lower_Arm'],
+            'mask1': result_submasks['Left_Lower_Arm'],
             'mask2': init_submasks['Left_Lower_Arm'] + init_submasks['Apparel'],
             'center1': keypoints_coords['Left_Elbo'],
             'center2': keypoints_coords['Left_Hand'],
         },
         {
-            'mask1': res_submasks['Right_Lower_Arm'],
+            'mask1': result_submasks['Right_Lower_Arm'],
             'mask2': init_submasks['Right_Lower_Arm'] + init_submasks['Apparel'],
             'center1': keypoints_coords['Right_Elbo'],
             'center2': keypoints_coords['Right_Hand'],
         },
         {
-            'mask1': res_submasks['Left_Upper_Arm'],
+            'mask1': result_submasks['Left_Upper_Arm'],
             'mask2': init_submasks['Left_Upper_Arm'],
             'center1': keypoints_coords['Left_Shoulder'],
             'center2': keypoints_coords['Left_Elbo'],
         },
         {
-            'mask1': res_submasks['Right_Upper_Arm'],
+            'mask1': result_submasks['Right_Upper_Arm'],
             'mask2': init_submasks['Right_Upper_Arm'],
             'center1': keypoints_coords['Right_Shoulder'],
             'center2': keypoints_coords['Right_Elbo'],
