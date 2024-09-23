@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 label_map = {
     "background": 0,
@@ -241,3 +241,41 @@ def filter_points_by_distance(reference_point, points_list, max_distance):
             filtered_points.append((x, y))
     
     return filtered_points
+
+
+def draw_binary_mask_on_image(base_image, binary_mask, color=(0, 255, 0)):
+    """
+    Composes a binary mask on top of a PIL base image with a specific color (default green).
+
+    Args:
+    - base_image (PIL.Image): The background image.
+    - binary_mask (np.ndarray or PIL.Image): Binary mask image (0 and 255 values).
+    - color (tuple): Color to apply to the mask (R, G, B). Default is green (0, 255, 0).
+
+    Returns:
+    - PIL.Image: The resulting image with the mask composed on top.
+    """
+    # Ensure base_image is in RGB mode
+    base_image = base_image.convert('RGB')
+
+    # Convert the binary_mask to a NumPy array if it's a PIL Image
+    if isinstance(binary_mask, Image.Image):
+        binary_mask = np.array(binary_mask)
+
+    # Create a blank image with the same size as the base image, filled with the color
+    color_mask = np.zeros_like(base_image)
+    color_mask[..., 0] = color[0]
+    color_mask[..., 1] = color[1]
+    color_mask[..., 2] = color[2]
+
+    # Ensure the binary mask is 0 and 255 (binary format)
+    binary_mask = np.where(binary_mask > 0, 127, 0).astype(np.uint8)
+
+    # Use the binary mask to composite the green color mask over the base image
+    mask_image = Image.fromarray(binary_mask).convert("L")  # Convert mask to grayscale
+    color_mask_image = Image.fromarray(color_mask)  # Convert color mask back to PIL
+
+    # Composite the color mask over the base image where the binary mask is true
+    composed_image = Image.composite(color_mask_image, base_image, mask_image)
+
+    return composed_image

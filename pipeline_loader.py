@@ -14,11 +14,12 @@ from transformers import (
 from diffusers import DDPMScheduler,AutoencoderKL
 from preprocess.humanparsing.run_parsing import Parsing
 from preprocess.openpose.run_openpose import OpenPose
+from stable_diffusion_wraper import StableDiffusionInpaintWrapper
 
 from torchvision import transforms
 
 class PipelineLoader:
-    def __init__(self, base_path: str, device: str = "cuda"):
+    def __init__(self, base_path: str, config: str, device: str = "cuda"):
         self.base_path = base_path
         self.device = device
         self.tensor_transform = transforms.Compose([
@@ -28,6 +29,7 @@ class PipelineLoader:
         self._load_components()
         self._load_pipeline()
         self._move_to_device()
+        self.inpainting_diffusion = self.StableDiffusionInpaintWrapper(**config['inpainting_diffusion'])
 
     def _load_components(self):
         # Load models
@@ -139,3 +141,8 @@ class PipelineLoader:
         if not hasattr(self, 'tensor_transform') or not self.pipe:
             raise AttributeError('Loader could not load tensor transform, try again')
         return self.tensor_transform
+
+    def get_inpainting_diffusion(self):
+        if not hasattr(self, 'inpainting_diffusion') or not self.pipe:
+            raise AttributeError('Loader could not load inpainting diffusion, try again')
+        return self.inpainting_diffusion

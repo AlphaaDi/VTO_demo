@@ -28,6 +28,7 @@ class TryOnProcessor:
         self.openpose_model = pipeline_loader.get_openpose_model()
         self.parsing_model = pipeline_loader.get_parsing_model()
         self.tensor_transform = pipeline_loader.get_tensor_transform()
+        self.inpainting_diffusion = pipeline_loader.get_inpainting_diffusion()
 
     def to(self, device):
         self.pipe.to(device)
