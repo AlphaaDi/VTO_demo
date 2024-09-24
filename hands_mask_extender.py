@@ -178,6 +178,27 @@ def get_additional_compose_mask(
     
     return normalized_mask
 
+
+from scipy.ndimage import distance_transform_edt
+def erode_based_on_distance(mask1, mask2, threshold, kernel_size=3):
+    # Compute the distance transform of the second mask (distance to nearest non-zero pixel)
+    distance_map = distance_transform_edt(1 - mask2)
+    
+    # Create a mask of pixels where the distance is below the threshold
+    close_to_mask2 = distance_map < threshold
+    
+    # Create a kernel for erosion
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    
+    mask1 = mask1.astype(np.uint8)
+    # Erode the first mask
+    eroded_mask1 = cv2.erode(mask1, kernel)
+    
+    # Apply erosion only in regions where distance to mask2 is less than the threshold
+    final_mask = np.where(close_to_mask2, eroded_mask1, mask1)
+    
+    return final_mask
+
 def expand_arms_compose_masking(
     human_img,
     init_submasks,
@@ -229,7 +250,12 @@ def expand_arms_compose_masking(
     ]
     
     compose_masks = []
+    init_upper_clothe_mask = init_submasks['Upper_Clothing'].astype(np.uint8)
     for additional_compose_mask_args in additional_compose_masks:
+        additional_compose_mask_args['mask2'] = erode_based_on_distance(
+            additional_compose_mask_args['mask2'],
+            init_upper_clothe_mask, 7, kernel_size=7
+        ) > 0
         compose_mask = get_additional_compose_mask(**additional_compose_mask_args)
         if compose_mask is None:
             continue
