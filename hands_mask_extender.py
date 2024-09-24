@@ -164,6 +164,8 @@ def get_additional_compose_mask(
     
     intersection_mask = np.zeros_like(mask1)
     intersections_np = np.array(intersections)
+    if len(intersections_np) == 0:
+        return None
     intersection_mask[intersections_np[:,1], intersections_np[:,0]] = True
     
     dilated_mask = cv2.dilate(
@@ -232,7 +234,10 @@ def expand_arms_compose_masking(
         if compose_mask is None:
             continue
         compose_masks.append(compose_mask)
+
+    if not compose_masks:
+        return None
     
     compose_masks = np.array(compose_masks).sum(0)
-    compose_masks = compose_masks.astype(bool)
+    compose_masks = compose_masks > 0
     return compose_masks

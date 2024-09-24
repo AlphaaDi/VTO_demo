@@ -29,7 +29,7 @@ class PipelineLoader:
         self._load_components()
         self._load_pipeline()
         self._move_to_device()
-        self.inpainting_diffusion = self.StableDiffusionInpaintWrapper(**config['inpainting_diffusion'])
+        self.inpainting_diffusion = StableDiffusionInpaintWrapper(**config['inpainting_diffusion'])
 
     def _load_components(self):
         # Load models

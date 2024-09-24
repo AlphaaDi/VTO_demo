@@ -135,7 +135,7 @@ class TryOnProcessor:
 
     def encode_prompts(self, garment_des):
         prompt = "model is wearing " + garment_des
-        negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality"
+        negative_prompt = "monochrome, lowres, bad anatomy, worst quality, low quality, blurry, mutated hands, bad proportions, fused fingers"
         with torch.inference_mode():
             (
                 prompt_embeds,

@@ -20,3 +20,6 @@ fvcore
 cloudpickle
 omegaconf
 pycocotools
+git+https://github.com/AlphaaDi/dw_pose_lib
+munch
+controlnet_aux

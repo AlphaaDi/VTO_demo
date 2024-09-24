@@ -20,7 +20,7 @@ segmentaion:
 
 inpainting_diffusion:
   model_path: "/workspace/VTO_demo/ckpt/stable_diffusion/realvisxlV50_v40Bakedvae.safetensors"
-  dtype: "torch.float16"  # Supported values: torch.float32, torch.float16, etc.
+  device: "cuda:1"
   neg_prompt: "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime:1.4), text, out of frame, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, (blurry:2.0), blur, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, fused fingers, too many fingers, long neck"
   inpaint_timestep_num: 50
   guidance_scale: 4.0

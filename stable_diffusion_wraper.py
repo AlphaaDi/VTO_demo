@@ -5,13 +5,12 @@ class StableDiffusionInpaintWrapper:
     def __init__(
         self, 
         model_path, 
-        device='cpu', 
-        dtype=torch.float16, 
+        device='cuda', 
         neg_prompt="", 
         inpaint_timestep_num=50,
-        guidance_scale = 4.0
-        strength = 0.99
-        max_timestep = 500
+        guidance_scale = 4.0,
+        strength = 0.99,
+        max_timestep = 500,
     ):
         """
         Initialize the Stable Diffusion inpainting pipeline.
@@ -26,7 +25,7 @@ class StableDiffusionInpaintWrapper:
         self.device = device
         self.inpaint_pipe = StableDiffusionXLInpaintPipeline.from_single_file(
             model_path,
-            torch_dtype=dtype
+            torch_dtype=torch.float16,
         )
         
         # Default negative prompt if none provided
@@ -38,7 +37,7 @@ class StableDiffusionInpaintWrapper:
 
         # Set scheduler timesteps
         self.inpaint_pipe.scheduler.config.num_train_timesteps = self.max_timestep
-        self.inpaint_pipe.scheduler.set_timesteps(self.inpaint_timestep_num, device)
+        self.inpaint_pipe.to(self.device)
 
     def forward(self, image, mask, pos_prompt):
         """
@@ -53,13 +52,13 @@ class StableDiffusionInpaintWrapper:
         - PIL.Image: The inpainted image.
         """
         # Move the model to the appropriate device (e.g., CUDA)
-        self.inpaint_pipe.to(self.device)
 
         # Perform the inpainting process
+        # self.inpaint_pipe.to(self.device)
         inpaint_missmatched_result = self.inpaint_pipe(
             prompt=pos_prompt,
             image=image,
-            mask_image=mask
+            mask_image=mask,
             negative_prompt=self.neg_prompt,
             strength=self.strength,
             num_inference_steps=self.inpaint_timestep_num,
@@ -67,7 +66,7 @@ class StableDiffusionInpaintWrapper:
         ).images[0]
 
         # Move the model back to CPU to free up GPU memory
-        self.inpaint_pipe.to('cpu')
-        torch.cuda.empty_cache()
+        # self.inpaint_pipe.to('cpu')
+        # torch.cuda.empty_cache()
 
         return inpaint_missmatched_result
