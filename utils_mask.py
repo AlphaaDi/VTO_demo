@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 from PIL import Image, ImageDraw, ImageOps
+from scipy.ndimage import distance_transform_edt
+
 
 label_map = {
     "background": 0,
@@ -279,3 +281,22 @@ def draw_binary_mask_on_image(base_image, binary_mask, color=(0, 255, 0)):
     composed_image = Image.composite(color_mask_image, base_image, mask_image)
 
     return composed_image
+
+def erode_based_on_distance(mask1, mask2, threshold, kernel_size=3):
+    # Compute the distance transform of the second mask (distance to nearest non-zero pixel)
+    distance_map = distance_transform_edt(1 - mask2)
+    
+    # Create a mask of pixels where the distance is below the threshold
+    close_to_mask2 = distance_map < threshold
+    
+    # Create a kernel for erosion
+    kernel = np.ones((kernel_size, kernel_size), np.uint8)
+    
+    mask1 = mask1.astype(np.uint8)
+    # Erode the first mask
+    eroded_mask1 = cv2.erode(mask1, kernel)
+    
+    # Apply erosion only in regions where distance to mask2 is less than the threshold
+    final_mask = np.where(close_to_mask2, eroded_mask1, mask1)
+    
+    return final_mask

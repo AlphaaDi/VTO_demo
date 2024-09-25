@@ -29,6 +29,7 @@ class TryOnProcessor:
         self.parsing_model = pipeline_loader.get_parsing_model()
         self.tensor_transform = pipeline_loader.get_tensor_transform()
         self.inpainting_diffusion = pipeline_loader.get_inpainting_diffusion()
+        self.attribute_classifier = pipeline_loader.get_attributes_classifier()
 
     def to(self, device):
         self.pipe.to(device)

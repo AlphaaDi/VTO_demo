@@ -14,12 +14,14 @@ from transformers import (
 from diffusers import DDPMScheduler,AutoencoderKL
 from preprocess.humanparsing.run_parsing import Parsing
 from preprocess.openpose.run_openpose import OpenPose
+from attributes_predictor_module.attributes_predictor import PersonAttributesClassifier
 
 from torchvision import transforms
 
 class PipelineLoader:
     def __init__(self, base_path: str, config: str, device: str = "cuda"):
         self.base_path = base_path
+        self.config = config
         self.device = device
         self.tensor_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -27,9 +29,10 @@ class PipelineLoader:
         ])
         self._load_components()
         self._load_pipeline()
-        self._move_to_device()
+        self._move_core_to_device()
 
-    def _load_components(self):
+
+    def _load_vto_core(self):
         # Load models
         self.unet = UNet2DConditionModel.from_pretrained(
             self.base_path,
@@ -92,17 +95,21 @@ class PipelineLoader:
             subfolder="scheduler"
         )
 
-        # Load parsing and openpose models
+    def _load_components(self):
         self.parsing_model = Parsing(0)
         self.openpose_model = OpenPose(0)
+        self.attributes_classifier = PersonAttributesClassifier(
+            self.config['persone_attributes']
+        )
 
-    def _move_to_device(self):
+    def _move_core_to_device(self):
         self.openpose_model.preprocessor.body_estimation.model.to(self.device)
         self.pipe.to(self.device)
         self.pipe.unet_encoder.to(self.device)
 
     def _load_pipeline(self):
         # Load pipeline
+        self._load_vto_core()
         self.pipe = TryonPipeline.from_pretrained(
             self.base_path,
             unet=self.unet,
@@ -139,3 +146,8 @@ class PipelineLoader:
         if not hasattr(self, 'tensor_transform') or not self.pipe:
             raise AttributeError('Loader could not load tensor transform, try again')
         return self.tensor_transform
+
+    def get_attributes_classifier(self):
+        if not hasattr(self, 'attributes_classifier') or not self.pipe:
+            raise AttributeError('Loader could not load attributes classifier, try again')
+        return self.attributes_classifier 

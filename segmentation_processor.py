@@ -2,6 +2,7 @@ from gradio_client import Client, handle_file
 import json
 import numpy as np
 import tempfile
+from typing import Iterable
 
 from utils_mask import remove_small_clusters_np
 
@@ -43,7 +44,17 @@ def extract_submask(segmentation_map, submask_classes, classes_mapping):
 
     return submask
 
-def get_all_submasks(segmentation_map, classes_mapping):
+
+def join_submasks(submasks: dict, classes: Iterable) -> np.array:
+    classes = list(classes)
+    canva = np.zeros_like(submasks[classes[0]])
+    canva = canva > 0
+    for class_name in classes:
+        canva = np.logical_or(canva, submasks[class_name])
+
+    return canva
+
+def get_all_submasks(segmentation_map, classes_mapping, min_size=1000):
     submasks = {}
     for name, idx in classes_mapping.items():
         submask = extract_submask(
@@ -51,6 +62,6 @@ def get_all_submasks(segmentation_map, classes_mapping):
             submask_classes=[name],
             classes_mapping=classes_mapping
         )
-        submask = remove_small_clusters_np(submask,min_size=1000)
+        submask = remove_small_clusters_np(submask,min_size=min_size)
         submasks[name] = submask
     return submasks
