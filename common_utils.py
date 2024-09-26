@@ -2,7 +2,6 @@ from PIL import Image
 import numpy as np
 import os
 
-
 def pil_to_binary_mask(pil_image, threshold=0):
     np_image = np.array(pil_image)
     grayscale_image = Image.fromarray(np_image).convert("L")

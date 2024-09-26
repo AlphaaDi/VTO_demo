@@ -51,8 +51,11 @@ persone_attributes:
 
 # Device settings
 device: cuda
-
-# Paths
-base_path: yisol/IDM-VTON
 example_path: ./example
+
+core_config:
+  base_path: yisol/IDM-VTON
+  prompt: "A {age} {gender} is wearing {garment_des}"
+  negative_prompt: "monochrome, lowres, bad anatomy, worst quality, low quality, blurry, mutated hands, bad proportions, fused fingers"
+
 
