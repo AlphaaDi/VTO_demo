@@ -77,6 +77,9 @@ __pypackages__/
 celerybeat-schedule
 celerybeat.pid
 
+vto_demo/ckpt/*
+vto_demo/sapiens_seg_module/assets/checkpoints/*
+
 # SageMath parsed files
 *.sage.py
 
@@ -88,6 +91,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+*vto_demo/sd_inpainting_module/.sd_inpaint_env/*
 
 # Model weights and checkpoints
 *.ckpt
@@ -100,10 +104,13 @@ venv.bak/
 *.pth
 *.pt
 *.pkl
+*.safetensors
+*.pt2
 
 # Images and videos
 *.png
 *.jpeg
+*.jpg
 *.gif
 *.bmp
 *.tiff
