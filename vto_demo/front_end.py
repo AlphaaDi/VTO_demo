@@ -1,6 +1,6 @@
 import os
 import gradio as gr
-from common_utils import get_files_from_dir
+from misc.common_utils import get_files_from_dir
 
 # Helper Function: Prepare Human Example List
 def prepare_human_examples(human_list_path):

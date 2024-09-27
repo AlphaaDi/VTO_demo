@@ -6,13 +6,13 @@ from io import BytesIO
 import yaml
 from PIL import Image, ImageChops, ImageFilter
 
-from utils_mask import get_mask_location, erode_mask, remove_small_clusters_np, erode_based_on_distance
+from misc.utils_mask import get_mask_location, erode_mask, remove_small_clusters_np, erode_based_on_distance
 from torchvision import transforms
 from detectron2.data.detection_utils import convert_PIL_to_numpy,_apply_exif_orientation
 from torchvision.transforms.functional import to_pil_image
-from segmentation_processor import request_segmentation_results, extract_submask, get_all_submasks, join_submasks
+from misc.segmentation_processor import request_segmentation_results, extract_submask, get_all_submasks, join_submasks
 import vto_core_module.apply_net as apply_net
-from hands_mask_extender import expand_arms_compose_masking
+from misc.hands_mask_extender import expand_arms_compose_masking
 
 
 def pil_image_to_bytes(pil_image, format='PNG'):

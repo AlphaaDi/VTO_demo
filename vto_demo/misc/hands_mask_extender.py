@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from utils_mask import erode_mask, filter_points_by_distance, erode_based_on_distance
+from misc.utils_mask import erode_mask, filter_points_by_distance, erode_based_on_distance
 
 def resize_keypoints_back(keypoints, img_resized_size, img_org_size):
     resized_width, resized_height = img_resized_size

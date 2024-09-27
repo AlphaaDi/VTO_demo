@@ -4,7 +4,7 @@ import numpy as np
 import tempfile
 from typing import Iterable
 
-from utils_mask import remove_small_clusters_np
+from misc.utils_mask import remove_small_clusters_np
 
 def request_segmentation_results(url, image, model_name="1b", api_name="/process_image"):
     client = Client(url)

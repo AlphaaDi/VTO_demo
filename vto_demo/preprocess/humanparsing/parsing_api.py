@@ -182,7 +182,7 @@ def onnx_inference(session, lip_session, input_dir):
     output_img.putpalette(palette)
     face_mask = torch.from_numpy((parsing_result == 11).astype(np.float32))
 
-    return output_img, face_mask
+    return output_img, face_mask, parsing_result
 
 
 

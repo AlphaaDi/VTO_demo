@@ -25,5 +25,5 @@ class Parsing:
 
     def __call__(self, input_image):
         # torch.cuda.set_device(self.gpu_id)
-        parsed_image, face_mask = onnx_inference(self.session, self.lip_session, input_image)
-        return parsed_image, face_mask
+        parsed_image, face_mask, parsing_result = onnx_inference(self.session, self.lip_session, input_image)
+        return parsed_image, face_mask, parsing_result
