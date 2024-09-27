@@ -10,7 +10,7 @@
 ---
 ## Video Introduction
 Please click on image to open the video on Google Drive:
-[![teaser](assets/video_intro_image.png)]([https://miro.com/app/board/uXjVKMj5-L8=/?share_link_id=120977142476](https://drive.google.com/file/d/158Vv8iIt1YTj2ftDzAcYCnEueFYtNgpW/view?usp=sharing))&nbsp;
+[![teaser](assets/video_intro_image.png)](https://drive.google.com/file/d/158Vv8iIt1YTj2ftDzAcYCnEueFYtNgpW/view?usp=sharing)&nbsp;
 
 ## High-Level Schema
 Please click on image to open the board in Miro:
