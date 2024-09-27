@@ -233,8 +233,8 @@ class TryOnProcessor:
     def generate_keypoints_and_parse_model(self, human_img):
         resized_human_img = human_img.resize((384, 512))
         keypoints = self.openpose_model(resized_human_img)
-        model_parse, _ = self.parsing_model(resized_human_img)
-        return keypoints, model_parse
+        model_parse, _, parsing_result = self.parsing_model(resized_human_img)
+        return keypoints, model_parse, parsing_result
 
     def generate_mask_and_mask_gray(self, model_parse, keypoints, human_img):
         mask, mask_gray = get_mask_location('hd', "upper_body", model_parse, keypoints)
@@ -264,7 +264,7 @@ class TryOnProcessor:
         return pose_img
 
     def process_tryon(
-        self, human_canva, garm_img, garment_des=None, denoise_steps=50, seed=997
+        self, human_canva, garm_img, denoise_steps=50, seed=997, garment_des=None
     ):
         if garment_des is None:
             garment_des = self.garment_description_generator.get_description(garm_img)
@@ -281,7 +281,7 @@ class TryOnProcessor:
         ) = self.preprocess_submasks(init_image=human_img)
         
         # Generate keypoints and parse model
-        keypoints, model_parse = self.generate_keypoints_and_parse_model(human_img)
+        keypoints, model_parse, _ = self.generate_keypoints_and_parse_model(human_img)
         
         # Generate mask and mask_gray
         mask, mask_gray = self.generate_mask_and_mask_gray(model_parse, keypoints, human_img)
@@ -334,7 +334,7 @@ class TryOnProcessor:
             result_image=result_image,
         )
         
-        keypoints_res, _ = self.generate_keypoints_and_parse_model(result_image)
+        keypoints_res, _, _ = self.generate_keypoints_and_parse_model(result_image)
         
         more_compose_result = self.get_more_compose_result(
             human_img, 
@@ -361,6 +361,5 @@ class TryOnProcessor:
         )
 
         inpainting_result_res = inpainting_result.resize(org_size)
-        result_image_res = result_image.resize(org_size)
         
         return inpainting_result_res

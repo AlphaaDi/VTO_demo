@@ -2,15 +2,16 @@
 <div align="center">
 <h1>Improving IDM-VTON with some non-training tricks to fix drawbacks of the basic model</h1>
 
-<a href='https://arxiv.org/abs/2403.05139'><img src='https://img.shields.io/badge/Baseline-Project-blue'></a>
-<a href='https://huggingface.co/spaces/yisol/IDM-VTON'><img src='https://img.shields.io/badge/My%20Gradio-Demo-yellow'></a>
+<a href='https://huggingface.co/spaces/yisol/IDM-VTON'><img src='https://img.shields.io/badge/Baseline-Project-blue'></a>
+<a href='https://4qi0jny7m6qehz-6441164-8888.proxy.runpod.net/'><img src='https://img.shields.io/badge/My%20Gradio-Demo-yellow'></a>
 
 </div>
 
 ---
 
-## GLOBAL MIRO SCHEMA
-<iframe width="768" height="432" src="https://miro.com/app/live-embed/uXjVKMj5-L8=/?moveToViewport=-4575,-4318,18910,10676&embedId=94980269183" frameborder="0" scrolling="no" allow="fullscreen; clipboard-read; clipboard-write" allowfullscreen></iframe>
+## High-Level Schema
+Please click on image to open the board in Miro:
+[![teaser](assets/miro_schema.png)](https://miro.com/app/board/uXjVKMj5-L8=/?share_link_id=120977142476)&nbsp;
 
 ## DISCLAMER!!!
 All the results are just a demonstration of technology on avatars and do not carry a message to offend anyone

@@ -17,7 +17,7 @@ def prepare_human_examples(human_list_path):
 # UI Setup Function: Gradio Components
 def setup_gradio_interface(processing_fn, human_ex_list, garm_list_path):
     gr.Markdown("## IDM-VTON Adaptation for HeyGen from Ivan Shpuntov 👕👔👚")
-    gr.Markdown("Virtual Try-on with your image and garment image. Check out the [source codes](https://github.com/yisol/IDM-VTON) and the [model](https://huggingface.co/yisol/IDM-VTON)")
+    gr.Markdown("Virtual Try-on with your image and garment image. Check out the [source codes](https://github.com/AlphaaDi/VTO_demo) and the [model](https://huggingface.co/yisol/IDM-VTON)")
 
     with gr.Row():
         with gr.Column():
@@ -31,22 +31,11 @@ def setup_gradio_interface(processing_fn, human_ex_list, garm_list_path):
 
         with gr.Column():
             garm_img = gr.Image(label="Garment", sources='upload', type="pil")
-            with gr.Row(elem_id="prompt-container"):
-                with gr.Row():
-                    prompt = gr.Textbox(
-                        placeholder="Description of garment ex) Short Sleeve Round Neck T-shirts",
-                        value="Short Sleeve Open Front Kimono in Yellow with Tropical Floral Print",
-                        show_label=False,
-                        elem_id="prompt",
-                    )
             gr.Examples(
                 inputs=garm_img,
                 examples_per_page=8,
                 examples=garm_list_path
             )
-
-        with gr.Column():
-            masked_img = gr.Image(label="Masked image output", elem_id="masked-img", show_share_button=False)
 
         with gr.Column():
             image_out = gr.Image(label="Output", elem_id="output-img", show_share_button=False)
@@ -63,11 +52,10 @@ def setup_gradio_interface(processing_fn, human_ex_list, garm_list_path):
         inputs=[
             imgs,
             garm_img,
-            prompt,
             denoise_steps,
             seed
         ],
-        outputs=[image_out, masked_img],
+        outputs=[image_out],
         api_name='tryon'
     )
 
