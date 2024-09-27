@@ -3,6 +3,9 @@ import yaml
 from pipeline_loader import PipelineLoader
 from front_end import append_gradio_frontend
 from request_processor import TryOnProcessor
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 with open('pipeline_config.yaml', 'r') as file:

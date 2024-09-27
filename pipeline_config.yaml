@@ -4,6 +4,7 @@ segmentaion:
   pre_preservation_classes:
     - Left_Hand
     - Right_Hand
+    - Apparel
   force_preservation_classes:
     - Hair
   soft_preservation_classes:
@@ -14,6 +15,12 @@ segmentaion:
     - Right_Hand
     - Right_Lower_Arm
     - Right_Upper_Arm
+  hands_classes:
+    - Apparel
+    - Left_Hand
+    - Right_Hand
+  torso_class:
+    - Torso
   clothing_classes:
     - Upper_Clothing
     - Lower_Clothing
@@ -47,15 +54,21 @@ persone_attributes:
         - "senior"
         - "elderly"
 
-
-
-# Device settings
-device: cuda
-example_path: ./example
-
 core_config:
+  device: cuda:0
   base_path: yisol/IDM-VTON
   prompt: "A {age} {gender} is wearing {garment_des}"
   negative_prompt: "monochrome, lowres, bad anatomy, worst quality, low quality, blurry, mutated hands, bad proportions, fused fingers"
+  negative_prompt_gender:
+    man: "female breasts"
+    woman: ""
 
 
+# Device settings
+device: cuda:0
+parsing_model_cuda_idx: 0
+openpose_model_cuda_idx: 0
+
+sd_inpainting_config_path: 'sd_inpainting_module/config.yaml'
+
+example_path: ./example

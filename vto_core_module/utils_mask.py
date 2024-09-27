@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
-from PIL import Image, ImageDraw, ImageOps
-from scipy.ndimage import distance_transform_edt
+from PIL import Image, ImageDraw
 
 label_map = {
     "background": 0,

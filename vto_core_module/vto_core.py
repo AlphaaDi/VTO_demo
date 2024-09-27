@@ -1,6 +1,5 @@
 import torch
 from transformers import AutoTokenizer
-import numpy as np
 
 from transformers import (
     CLIPImageProcessor,
@@ -18,6 +17,10 @@ from torchvision import transforms
 
 class VtoCore:
     def __init__(self, config):
+        self.base_path = config['base_path']
+        self.config = config
+        self.device = config['device']
+
         self._load_vto_core()
         self.pipe = TryonPipeline.from_pretrained(
             self.base_path,
@@ -39,8 +42,9 @@ class VtoCore:
         ])
 
         self.pipe.unet_encoder = self.UNet_Encoder
-        self.config = config
-        self.device = config['device']
+
+    def get_tensor_transform(self):
+        return self.tensor_transform
 
     def to(self, device):
         self.pipe.to(device)
@@ -111,8 +115,12 @@ class VtoCore:
         )
 
     def encode_prompts(self, garment_des, attributes={}):
-        prompt = self.config["prompt"].format(**attributes) + garment_des
-        negative_prompt = self.config["negative_prompt"]
+        attributes['garment_des'] = garment_des
+        prompt = self.config["prompt"].format(**attributes)
+
+        gender = attributes["gender"]
+        additional_neg_prompt = self.config["negative_prompt_gender"][gender]
+        negative_prompt = additional_neg_prompt + self.config["negative_prompt"]
         with torch.inference_mode():
             (
                 prompt_embeds,
@@ -159,7 +167,8 @@ class VtoCore:
             garment_des,
             mask,
             denoise_steps,
-            seed
+            seed,
+            attributes,
         ):
         with torch.no_grad():
             with torch.cuda.amp.autocast():
@@ -170,7 +179,7 @@ class VtoCore:
                     pooled_prompt_embeds,
                     negative_pooled_prompt_embeds,
                     prompt_embeds_c,
-                ) = self.encode_prompts(garment_des)
+                ) = self.encode_prompts(garment_des,attributes=attributes)
 
                 # Prepare images for the model
                 pose_img_tensor, garm_tensor = self.prepare_images_for_model(pose_img, garm_img)
@@ -197,5 +206,5 @@ class VtoCore:
                     width=768,
                     ip_adapter_image=garm_img.resize((768, 1024)),
                     guidance_scale=2.0,
-                )[0]
-        return pipe_result
+                )
+        return pipe_result[0][0]

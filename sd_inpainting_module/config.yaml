@@ -2,12 +2,12 @@ inpainting_diffusion_args:
   model_path: "/workspace/VTO_demo/ckpt/stable_diffusion/realvisxlV50_v30InpaintBakedvae.safetensors"
   dw_model_pathdir: "/workspace/VTO_demo/ckpt/dw_pose"
   device: "cuda:1"
-  neg_prompt: "(deformed iris, deformed pupils, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime:1.4), text, out of frame, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, (blurry:2.0), blur, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, fused fingers, too many fingers, long neck"
+  neg_prompt: "(deformed iris, semi-realistic, cgi, 3d, render, sketch, cartoon, drawing, anime:1.4), text, out of frame, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, extra fingers, mutated hands, poorly drawn hands, poorly drawn face, mutation, deformed, (blurry:2.0), blur, dehydrated, bad anatomy, bad proportions, extra limbs, cloned face, disfigured, gross proportions, malformed limbs, missing arms, missing legs, fused fingers, too many fingers"
   inpaint_timestep_num: 50
   guidance_scale: 7.5
   strength: 0.99
   max_timestep: 300
-  ip_adapter_scale: 0.7
+  ip_adapter_scale: 0.5
   controlnet_conditioning_scale: 0.7
 
 server:
