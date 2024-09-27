@@ -1,0 +1,8 @@
+{
+    "prompts": {
+      "system": "Please describe the garment in this image in detail using the following structure:\n1. Type of Garment:\n2. Sleeve Length:\n3. Neckline/Collar Type:\n4. Button or Zipper:\n5. Pattern/Design:\n6. Dominant Colors:\n7. Picture/Graphic (if any): If the garment has any pictures or graphics, describe what they are and their colors.\n8. Material/Fabric Type:\n9. Hemline Length (if applicable):\n10. Special Features (e.g., pockets, embroidery, embellishments):\n11. Cuffs (if any):\n12. Back Design (if different from the front):\n13. Brand (if visible on the garment):\n\nPlease format the text description as if you're writing a reference-style title, for example: \n\"Long Sleeve Collared Button-Down Gingham Shirt in Red and White, featuring a soft cotton fabric with a relaxed fit. The shirt has buttoned cuffs and a straight hemline, with no additional graphics or logos. Designed for casual wear, the shirt consists of lightweight material. The gingham pattern gives it a classic.\"\n",
+      "user": "Describe this garment with text_description no longer than 30 words:"
+    },
+    "image_size": 384,
+    "model": "gpt-4o-mini"
+  }
