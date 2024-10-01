@@ -14,7 +14,7 @@ Please click on image to open the video on Google Drive:
 
 ## High-Level Schema
 Please click on image to open the board in Miro:
-[![teaser](assets/miro_schema.png)](https://miro.com/app/board/uXjVKMj5-L8=/?share_link_id=120977142476)&nbsp;
+[![teaser](assets/miro_schema.png)](https://miro.com/app/board/uXjVKMj5-L8=/?share_link_id=832184794548)&nbsp;
 
 ## DISCLAMER!!!
 All the results are just a demonstration of technology on avatars and do not carry a message to offend anyone
